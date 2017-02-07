@@ -1,0 +1,266 @@
+// requires custom `utils` webppl package:
+// to run:
+// webppl full-model.wppl --require utils
+
+var utterances = {
+  positive: ["positive_Adjective",
+             "positive_sub",
+             "positive_super"],
+  negative: ["negative_Adjective",
+             "negative_sub",
+             "negative_super"]
+};
+
+
+var utterancePrior = cache(function(form){
+  return Infer({
+    model: function() {
+      return categorical({
+        vs: utterances[form],
+        ps: [1,1,1]
+      })
+    }
+  })
+});
+
+
+var meaning = function(utterance, state, threshold) {
+  utterance == "positive" ? state > threshold ? flip(0.9999) : flip(0.0001) :
+  utterance == "negative" ? state < threshold ? flip(0.9999) : flip(0.0001) :
+  true
+}
+
+var projectPath = "/path/to/cogsci17-comparison-class/"
+
+var expt1DataFile = projectPath + "/data/class-elicitation-full-trials.csv";
+var expt2DataFile = "data/vague-prior-elicitation-1-trials.csv";
+
+var data = {
+  expt1: dataFrame(utils.readCSV(expt1DataFile)),
+  expt2: dataFrame(utils.readCSV(expt2DataFile), ["response"])
+};
+
+var subCategories0 = levels(data.expt1, "sub_category");
+// readCSV grabs an extra row, so chop it off
+var subCategories = subCategories0.slice(0, subCategories0.length - 1);
+
+var degrees0 = levels(vsData, "degree");
+var degrees = degrees0.slice(0, degrees0.length - 1);
+
+var model = function(){
+
+  var alphas = {
+    s1: {
+      expt1: uniformDrift( { a:0, b: 20, width: 2} ),
+      expt2: uniformDrift( { a:0, b: 20, width: 2} )
+    },
+    s2: {
+      expt2: uniformDrift({a:0, b: 5, width: 0.5}),
+    }
+  };
+
+
+  var frequencyScale = uniformDrift({a:0, b: 3, width: 0.2})
+
+  foreach(degrees, function(degree){
+    var degreeData = _.where(data.expt1, {degree:degree});
+    var subCats = levels(degreeData, "sub_category");
+    var superCat = degreeData[0]["super_category"];
+
+    var supercatWeight = exp(
+      frequencyScale * catFrequencies[superCat]
+    );
+
+    foreach(subCats, function(subCat){
+
+      var mu = uniformDrift( { a: -3, b: 3, width:0.5});
+      var sigma = uniformDrift({ a: 0, b: 5, width: 0.3});
+
+      var subcatWeight = exp(
+        frequencyScale * catFrequencies[subCat]
+      );
+
+      var classPrior = Infer({
+        model: function(){
+          return categorical({
+            vs: ["super", "sub"],
+            ps:[supercatWeight, subcatWeight]})
+      }});
+
+      var binParam = 3;
+
+      var stateParams = {
+        sub: {mu: mu, sigma: sigma},
+        super: {mu: 0, sigma: 1}
+      }
+
+      var stateVals = map(
+        round,
+        _.range(stateParams.super.mu - 3 * stateParams.super.sigma,
+                stateParams.super.mu + 3 * stateParams.super.sigma,
+                stateParams.super.sigma/binParam)
+      );
+
+      var stateProbs = {
+        sub: map(function(s){
+          Math.exp(Gaussian(stateParams.sub).score(s))+
+          Number.EPSILON
+        }, stateVals),
+        super: map(function(s){
+          Math.exp(Gaussian(stateParams.super).score(s))+
+          Number.EPSILON
+        }, stateVals)
+      };
+
+      var statePrior = {
+        sub: Infer({
+          model: function(){return categorical({vs:stateVals,ps:stateProbs.sub})}
+        }),
+        super: Infer({
+          model: function(){return categorical({vs:stateVals,ps:stateProbs.super})}
+        })
+      };
+
+      var thresholdBins ={
+        positive: map(function(x){
+          return  x - (1/(binParam*2));
+        }, sort(statePrior.super.support())),
+        negative: map(function(x){
+          return  x + (1/(binParam*2));
+        }, sort(statePrior.super.support()))
+      };
+
+      var thresholdPrior = cache(function(form){
+        return Infer({
+          model: function() { return uniformDraw(thresholdBins[form]) }
+        });
+      });
+      // same literal listener function for both expt models
+      // other speaker / listener functions are separated for readability
+      var literalListener = cache(function(u, threshold, comparisonClass) {
+        Infer({model: function(){
+          var cc = u.split("_")[1] == "Adjective" ?  comparisonClass :
+                    u.split("_")[1] == "silence" ?  comparisonClass :
+                    u.split("_")[1]
+          var utterance = u.split("_")[0]
+          var state = sample(statePrior[cc]);
+          var m = meaning(utterance, state, threshold);
+          condition(m);
+          return state;
+        }})
+      }, 10000)
+
+      /////////////////////////////////////////////////
+      // for expt2 speaker task
+      var speaker1_super = cache(function(state, threshold, form) {
+        Infer({model: function(){
+          var utterance = uniformDraw([form + "_Adjective", "silence_silence"]);
+          var L0 = literalListener(utterance, threshold, "super")
+          factor( alphas.s1.expt2 * L0.score(state) )
+          return utterance
+        }})
+      }, 10000)
+
+      var pragmaticListener_super = cache(function(utterance, form) {
+        Infer({model: function(){
+          var state = sample(statePrior["super"]);
+          var threshold = sample(thresholdPrior(form));
+          var S1 = speaker1_super(state, threshold, form);
+          observe(S1, utterance);
+          return state
+        }})
+      }, 10000)
+
+      var speaker2_super = function(form){
+        Infer({model: function(){
+          var speakerBeliefs = statePrior["sub"];
+          var utterance = uniformDraw([form + "_Adjective", "silence_silence"]);
+          var L1 = pragmaticListener_super(utterance, form);
+
+          var _kl = KL(speakerBeliefs, L1, speakerBeliefs.support());
+          factor(alphas.s2.expt2 * -1 * _kl)
+
+          return utterance == form + "_Adjective" ? 1 : 0
+          }})
+      }
+
+      ////////////////////////////////////////
+      // for expt 1 comparison class inference task
+      var speaker1 = cache(function(state, threshold, comparisonClass, form) {
+        Infer({model: function(){
+          var utterance = sample(utterancePrior(form))
+          var L0 = literalListener(utterance, threshold, comparisonClass)
+          factor( alphas.s1.cc * L0.score(state) )
+          return utterance
+        }})
+      }, 10000)
+
+      var pragmaticListener = function(form) {
+        Infer({model: function(){
+          var utterance = form + "_Adjective";
+          var comparisonClass = sample(classPrior);
+          var state = sample(statePrior["sub"]);
+          var threshold = sample(thresholdPrior(form));
+          var S1 = speaker1(state, threshold, comparisonClass, form);
+          observe(S1, utterance);
+          return comparisonClass == "sub" ? "sub_plural" : "super"
+        }})
+      }
+      ////////////////////////////////////////
+
+      foreach(["positive","negative"], function(form){
+
+        var d_subcat_superSpeaker = _.pluck(
+          _.where(vsData, {sub_category: subCat, form:form}),
+        "response");
+        var d_subcat_ccInference = _.pluck(
+            _.where(ccData, {sub_category: subCat, form:form}),
+        "paraphrase");
+
+        var superSpeakerProbs = speaker2_super(form);
+
+        mapData({data:d_subcat_superSpeaker}, function(d){
+          observe(superSpeakerProbs, d)
+        })
+
+        var ccRSA = pragmaticListener(form);
+
+        mapData({data:d_subcat_ccInference}, function(d){
+          observe(ccRSA, d);
+        })
+
+        query.add([subCat, "superSpeaker", form], exp(superSpeakerProbs.score(1)))
+        query.add([subCat, "superCC", form], exp(ccRSA.score("super")))
+
+      })
+
+      query.add([subCat, "mu", "NA"], mu);
+      query.add([subCat, "sigma", "NA"], sigma);
+      query.add([subCat, "prior", "NA"], gaussian(mu, sigma));
+
+      })
+    })
+
+  query.add(["beta", "frequency",  "NA"], frequencyScale)
+  query.add(["speakerOptimality_s1","expt1", "NA"],alphas.s1.expt1)
+  query.add(["speakerOptimality_s1","expt2", "NA"],alphas.s1.expt1)
+  query.add(["speakerOptimality_s2","expt2", "NA"],alphas.s2.expt2)
+
+  return query
+}
+
+// in paper, ran 2 chains of 50k iterations (~ 40 hours)
+var mhiter = 100;
+
+var burn = mhiter / 2;
+var posterior = Infer({
+  model: model,
+  method: "incrementalMH",
+  samples: mhiter, burn: burn,
+  verbose: T,
+  verboseLag: mhiter / 20
+})
+
+var outfile = 'results-fullModel-'+ mhiter+'_burn'+burn+'_chain'+index+'.csv'
+utils.writeQueryERP(posterior, outfile, ["cat", "param", "form", "val"])
+display("file written to = " + outfile)

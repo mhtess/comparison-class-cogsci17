@@ -2,4 +2,8 @@
 
 ----
 
-Models, analyses, data, experiments, and write-up 
+Models, analyses, data, experiments, and write-up
+
+Experimental paradigms can be viewed here: [experiment library](https://mhtess.github.io)
+
+WebPPL models can be viewed (and run) here: [forest](http://forestdb.org/models/comparison-class-cogsci17.html)

@@ -1,0 +1,13 @@
+var stateParams = {
+  sub: paramsFromR.priorParams.sub[0],
+  super: paramsFromR.priorParams.super[0]
+};
+
+var priorModel = function(){
+  var sub = gaussian(stateParams.sub);
+  var super = gaussian(stateParams.super);
+  return {sub, super}
+}
+
+var prior = Infer({method: 'forward', samples: 10000, model: priorModel})
+prior

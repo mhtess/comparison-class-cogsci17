@@ -1,0 +1,114 @@
+---
+title: "Frequency and length for comparison class prior"
+output: html_notebook
+---
+
+We imagine the utterance "He is tall" is an incomplete utterance, which gets expanded to "He is a tall man" or "He is tall for a man" assuming a noisy channel-style reconstruction.
+The prior distribution on comparison classes (say, between "people" and "basketball players"), then, can be imagined as a prior distribution on the two completions ("He is tall relative to other basketball players" vs. "He is tall relative to other people").
+
+We can thus adopt a "production prior" for the comparison class prior, and can estimate the relative cost of these two utterances by their length and log-frequency.
+
+We will use the Google WebGram corpus, accessed [online](http://corpora.linguistik.uni-erlangen.de/demos/cgi-bin/Web1T5/Web1T5_freq.perl)
+
+
+```{r}
+rm(list = ls())
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(jsonlite)
+```
+
+# Google Web Grams
+
+
+```{r}
+sub_categories <- read.csv("../data/webgram_subcat.csv")
+super_categories <- read.csv( "../data/webgram_supercat.csv")
+```
+
+
+```{r}
+bind_rows(sub_categories %>% select(X, web.gram.freq) %>% mutate(category = "sub"),
+          super_categories %>% select(X, web.gram.freq) %>% mutate(category = "super")) %>%
+  rename(cat = X) %>%
+  mutate(logfreq = log(web.gram.freq),
+         cat = factor(cat, levels = cat[order(logfreq)])) %>%
+  ggplot(., aes( x = cat, y = logfreq, fill = category))+
+  geom_bar(stat = 'identity', position = position_dodge())+
+  coord_flip()
+```
+
+
+ For purposes of the model, we average over a number of similar phrases
+ 
+```{r}
+d <- read.csv("../data/class-elicitation-full-trials.csv")
+
+df.freq <- bind_rows(
+  sub_categories %>% 
+    select(X, web.gram.freq),
+  super_categories %>% 
+    select(X, web.gram.freq)
+) %>% drop_na() %>% spread(X, web.gram.freq)
+
+levels(factor(d$sub_category))
+levels(factor(d$super_category))
+
+df.freq.long <- data.frame(
+  cat = c(
+    "grape","apple","watermelon", "produce",
+    "gymnast","soccer player","basketball player","people",
+    "bottle opener", "toaster", "dishwasher", "kitchen appliances",
+    "day in Winter", "day in Fall", "day in Summer", "days of the year",
+    "video of the cute animal", "music video", "movie", "things you watch online"
+  ),
+  category = c(
+    "sub", "sub","sub","super",
+    "sub", "sub","sub","super",
+    "sub", "sub","sub","super",
+    "sub", "sub","sub","super",
+    "sub", "sub","sub","super"
+  ),
+  degree = c(
+    "weight","weight","weight","weight",
+    "height","height","height","height",
+    "price","price","price","price",
+    "temperature","temperature","temperature","temperature",
+    "duration","duration","duration","duration"
+  ),
+  freq = c(
+    df.freq$grapes, df.freq$apples, df.freq$watermelons, df.freq$`fruits and vegetables`,
+    df.freq$gymnasts, df.freq$`soccer players`, df.freq$`basketball players`, df.freq$people,
+    df.freq$`bottle openers`, df.freq$toasters, df.freq$`dishwashing machines`, df.freq$`kitchen appliances`,
+    (df.freq$`days in Winter` + df.freq$`days of Winter` + df.freq$`Winter days`)/3, 
+    (df.freq$`days in Fall` + df.freq$`days of Fall` + df.freq$`Fall days`)/3,
+    (df.freq$`days in Summer` + df.freq$`days of Summer` + df.freq$`Summer days`)/3, 
+    (df.freq$`days in the year` + df.freq$`days of the year`)/2,
+    (df.freq$`videos of animals` + df.freq$`animal videos`)/2,
+    df.freq$`music videos`, df.freq$movies, 
+    (df.freq$`online videos` + df.freq$`online media`)/2
+  )
+)
+```
+
+
+```{r}
+df.freq.long  %>% 
+  mutate(logfreq = log(freq),
+         cat = factor(cat, levels = cat[order(logfreq)])) %>% 
+  ggplot(., aes( x = cat, y = logfreq, fill = category))+
+  geom_bar(stat = 'identity', position = position_dodge())+
+  coord_flip()
+```
+
+
+```{r}
+
+df.freq.long  %>% 
+  mutate(logfreq = log(freq),
+         cat = factor(cat, levels = cat[order(logfreq)])) %>% 
+  select(cat, logfreq) %>% spread(cat, logfreq) %>%
+  toJSON(., pretty = T)
+```
+
