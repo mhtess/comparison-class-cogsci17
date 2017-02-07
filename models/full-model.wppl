@@ -30,10 +30,8 @@ var meaning = function(utterance, state, threshold) {
   true
 }
 
-var projectPath = "/path/to/cogsci17-comparison-class/"
-
-var expt1DataFile = projectPath + "/data/class-elicitation-full-trials.csv";
-var expt2DataFile = "data/vague-prior-elicitation-1-trials.csv";
+var expt1DataFile = "../data/class-elicitation-full-trials.csv";
+var expt2DataFile = "../data/vague-prior-elicitation-1-trials.csv";
 
 var data = {
   expt1: dataFrame(utils.readCSV(expt1DataFile)),
@@ -44,7 +42,7 @@ var subCategories0 = levels(data.expt1, "sub_category");
 // readCSV grabs an extra row, so chop it off
 var subCategories = subCategories0.slice(0, subCategories0.length - 1);
 
-var degrees0 = levels(vsData, "degree");
+var degrees0 = levels(data.expt2, "degree");
 var degrees = degrees0.slice(0, degrees0.length - 1);
 
 var model = function(){
@@ -63,7 +61,7 @@ var model = function(){
   var frequencyScale = uniformDrift({a:0, b: 3, width: 0.2})
 
   foreach(degrees, function(degree){
-    var degreeData = _.where(data.expt1, {degree:degree});
+    var degreeData = _.filter(data.expt1, {degree:degree});
     var subCats = levels(degreeData, "sub_category");
     var superCat = degreeData[0]["super_category"];
 
@@ -190,7 +188,7 @@ var model = function(){
         Infer({model: function(){
           var utterance = sample(utterancePrior(form))
           var L0 = literalListener(utterance, threshold, comparisonClass)
-          factor( alphas.s1.cc * L0.score(state) )
+          factor( alphas.s1.expt1 * L0.score(state) )
           return utterance
         }})
       }, 10000)
@@ -210,11 +208,11 @@ var model = function(){
 
       foreach(["positive","negative"], function(form){
 
-        var d_subcat_superSpeaker = _.pluck(
-          _.where(vsData, {sub_category: subCat, form:form}),
+        var d_subcat_superSpeaker = _.map(
+          _.filter(data.expt2, {sub_category: subCat, form:form}),
         "response");
-        var d_subcat_ccInference = _.pluck(
-            _.where(ccData, {sub_category: subCat, form:form}),
+        var d_subcat_ccInference = _.map(
+            _.filter(data.expt1, {sub_category: subCat, form:form}),
         "paraphrase");
 
         var superSpeakerProbs = speaker2_super(form);
@@ -250,7 +248,7 @@ var model = function(){
 }
 
 // in paper, ran 2 chains of 50k iterations (~ 40 hours)
-var mhiter = 100;
+var mhiter = 10;
 
 var burn = mhiter / 2;
 var posterior = Infer({
@@ -261,6 +259,6 @@ var posterior = Infer({
   verboseLag: mhiter / 20
 })
 
-var outfile = 'results-fullModel-'+ mhiter+'_burn'+burn+'_chain'+index+'.csv'
+var outfile = 'results-fullModel-'+ mhiter+'_burn'+burn+'.csv'
 utils.writeQueryERP(posterior, outfile, ["cat", "param", "form", "val"])
 display("file written to = " + outfile)
