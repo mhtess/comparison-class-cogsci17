@@ -12,7 +12,8 @@ library(dplyr)
 library(data.table)
 library(coda)
 library(knitr)
-
+library(ggthemes)
+theme_set(theme_minimal(9))
 estimate_mode <- function(s) {
   d <- density(s)
   return(d$x[which.max(d$y)])
@@ -76,93 +77,39 @@ vs.summary <- left_join(d, d.catch %>% select(workerid, pass)) %>%
 ### FBT models
 
 
-```{r}
-n_chains  = 2
-n_samples = 30000
-m.samp <- data.frame()
-# just Expt 1 data
-#file.prefix <- "cc-mcmc5000_burn2500_chain"
-# just Expt 1 data, infer prior on comparison class (by degree)
-#file.prefix <- "cc-subcatpriorByDegree-mcmc3000_burn1500_chain"
-# just Expt 1 data, infer prior on comparison class (by subcat)
-#file.prefix <- "cc-subcatpriorByCat-mcmc3000_burn1500_chain"
+```{r load_model_results, cache = T}
+load("../models/results/fbt-L1-explAlt-noSilence-empiricalCC-disc3-mcmc50000_burn25000_2chain.RData")
 
-# just Expt 2 data
-#file.prefix <- "vs-mcmc3000_burn1500_chain"
-
-# expt 1 & expt 2 data, fixed prior on comparison class
-#file.prefix <- "fbt-mcmc5000_burn2500_chain"
-# expt 1 & expt 2 data, infer prior on comparison class (by subcat)
-#file.prefix <- "fbt-subcatprior-mcmc5000_burn2500_chain"
-# expt 1 & expt 2 data, infer prior on cc (by degree)
-#file.prefix <- "fbt-subcatpriorByDegree-mcmc3000_burn1500_chain"
-
-# expt 1 & expt 2 with L2 model (1/20/17)
-#file.prefix <- "fbt-L2-posnegAlt-mcmc3000_burn1500_chain"
-
-# expt 1 & expt 2 with L1 model with pos & neg alternatives (1/20/17)
-#file.prefix <- "fbt-L1-posnegAlt-mcmc1000_burn500_chain"
-# expt 1 & 2, L1 model with pos, neg, and silence alternatives (fixed S2 model from above) (1/24)
-#file.prefix <- "fbt-L1-posnegAlt-silenceCost-S2flip-mcmc1500_burn750_chain"
-
-# expt 1 & 2, L1 model with explicit and silence alternatives
-#file.prefix <- "fbt-L1-explAlt-ccPriorByDomain-disc3-mcmc10_burn5_chain"
-
-# expt 1 & expt 2 with L1 model with pos, neg, and explicit alternatives (1/23/17)
-# file.prefix <- "fbt-L1-fullAlt-ccPriorByDegree-disc3-mcmc500_burn250_chain"
-
-# expt 1 & 2, L1 model with only explicit and silence alternatives (no pos / neg) (1/24)
-#file.prefix <- "fbt-L1-fullAlt-ccPriorByDomain-disc3-mcmc1500_burn750_chain"
+m.samp.tidy <-left_join(
+  m.samp %>% filter(param == "prior"),
+  d %>% select(degree, sub_category, strength) %>% unique() %>%
+  rename(cat = sub_category)
+) %>% 
+  mutate(strength = factor(strength, levels = c(1,2,3),
+                           labels = c("low","medium","high")))
 
 
-# expt 1 & 2, L1 with pos, neg and silence and empirical CC (1/25)
-#file.prefix <- "fbt-L1-posnegAlt-silenceCost-empiricalCC-S2flip-mcmc3000_burn1500_chain"
 
-# expt 1 & 2, L1 with pos, neg and silence (no silence cost) and empirical CC (1/25)
-#file.prefix <- "fbt-L1-posnegAlt-empiricalCC-S2flip-mcmc1500_burn750_chain"
+m.freq.summary <- m.samp %>% filter(param == "frequency") %>%
+  group_by(param) %>%
+  summarize( MAP = estimate_mode(val),
+             cred_upper = hdi_upper(val),
+             cred_lower = hdi_lower(val) )
 
-# expt 1 & 2, L1, with only silence and empriical CC
-#file.prefix <- "fbt-L1-silenceAlt-silenceCost-empiricalCC-S2flip-mcmc10000_burn5000_chain"
-
-#file.prefix <- "fbt-L1-silenceAlt-silenceCost-empiricalCC-narrowPrior-S2flip-mcmc3000_burn1500_chain"
-
-# expt 1 & expt 2 with L1 model with pos, neg, and explicit alternatives and ccEmpirical prior (1/26)
-#file.prefix <- "fbt-L1-fullAlt-ccEmpirical-sansCost-disc3-mcmc2000_burn1000_chain"
-
-# expt 1 & 2, L1 model with only explicit and silence alternatives (no pos / neg) (1/26) [good!]
-#file.prefix <- "fbt-L1-explAlt-empiricalCC-disc3-mcmc15000_burn7500_chain"
-
-# expt 1 & 2, L1 model with only explicit alternatives and silence (no pos / neg), empirical CC based only on frequency (1/26)
-#file.prefix <- "fbt-L1-explAltSilence-empiricalCC-noLength-disc3-mcmc5000_burn2500_chain"
-
-# expt 1 & 2, L1 model with only explicit alternatives and silence (no pos / neg), empirical CC based only on frequency (1/26)
-#file.prefix <- "fbt-L1-explAltnoSilence-empiricalCC-noLength-disc3-mcmc5000_burn2500_chain"
-
-
-#file.prefix <- "fbt-vsOnly-L1-explAltnoSilence-empiricalCC-noLength-disc3-mcmc20000_burn10000_chain"
-
-#file.prefix <- "fbt-L1-explAltnoSilence-widerPriorPriors-empiricalCC-noLength-disc4-mcmc10000_burn5000_chain"
-
-#file.prefix <- "fbt-L1-explAltnoSilence-widerPriorPriors-empiricalCC-noLength-disc3-mcmc30000_burn15000_chain"
-#file.prefix <- "cc-L1-explAltwSilence-widerPriorPriors-empiricalCC-noLength-disc3-mcmc30000_burn15000_chain"
-file.prefix <- "fbt-L1-explAltwSilence-widerPriorPriors-empiricalCC-noLength-disc3-mcmc30000_burn15000_chain"
-
-for (i in seq(1, n_chains)){
-  m <- as.data.frame(fread(paste(project.path,"models/sherlock/results/",
-                                 file.prefix, i, ".csv", sep="")))
-  m.samp.i <- rwebppl::get_samples(m, n_samples)
-  m.samp <- bind_rows(m.samp, m.samp.i)
-  print(i)
-}
-
+m.pp <- m.samp %>% 
+  filter(param %in% c("superCC", "superSpeaker")) %>%
+  group_by(param, cat,form) %>%
+  summarize( MAP = estimate_mode(val),
+             cred_upper = hdi_upper(val),
+             cred_lower = hdi_lower(val) )
 ```
+
 
 Speaker optimality parameters
 
 ```{r}
 m.samp %>% filter(cat %in% c("speakerOptimality_s1", "speakerOptimality_s2")) %>%
   separate(cat, into = c("cat", "speaker")) %>%
-#m.samp %>% filter(cat == "speakerOptimality") %>%
   ggplot(., aes(x = val))+
   geom_histogram()+
   facet_wrap(~ param  + speaker, scales = 'free')
@@ -172,7 +119,7 @@ Other parameters
 
 ```{r}
 m.samp %>% 
-  filter(cat %in% c("silenceCost","explicitCost","superCatPrior", "beta")) %>%
+  filter(cat == "beta") %>%
   ggplot(., aes(x = val))+
   geom_histogram()+
   facet_wrap(~ cat + param, scales = 'free')
@@ -190,6 +137,8 @@ m.samp %>% filter(param %in% c("mu", "sigma")) %>%
     theme_bw()+
   theme(strip.text.y = element_text(angle = 0))
 ```
+
+
 ```{r}
 m.samp %>% filter(param %in% c("mu", "sigma")) %>%
   filter(cat != "") %>%
@@ -205,34 +154,26 @@ m.samp %>% filter(param %in% c("mu", "sigma")) %>%
 What do the priors look like?
 
 ```{r}
-left_join(
-  m.samp %>% filter(param == "prior"),
-  d %>% select(degree, sub_category, strength) %>% unique() %>%
-  rename(cat = sub_category)
-) %>% 
-  mutate(strength = factor(strength, levels = c(1,2,3),
-                           labels = c("low", "medium", "high"))
-         ) %>%
-  ggplot(., aes(x = val, y = ..scaled.., 
-                color = strength, fill = strength))+
-  geom_density(alpha=0.4)+
-  facet_wrap(~degree, scales = 'fixed')+
-  xlim(-4, 4)+
-  theme_bw()+
-  theme(strip.text.y = element_text(angle = 0)) 
+
+
+ggplot(m.samp.tidy %>% mutate(experiment = "Degree \n priors"), 
+                aes(x = val, y = ..scaled.., 
+                 fill = strength, lty = strength))+
+  geom_density(adjust = 2, size = 0.8, alpha = 0.8)+
+  scale_fill_manual(values = c("#ffeda0","#feb24c","#f03b20"))+
+  facet_grid(experiment~degree, scales = 'fixed')+
+  xlim(-3, 3)+
+  scale_y_continuous(limits = c(0, 1), breaks = c(0, 1))+
+  xlab("Degree value")+
+  ylab("Prior density")+
+  theme(strip.text.x = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.line = element_line(colour = "black"))
 ```
 
 
 Posterior predictives
-
-```{r}
-m.pp <- m.samp %>% 
-  filter(param %in% c("superCC", "superSpeaker")) %>%
-  group_by(param, cat,form) %>%
-  summarize( MAP = estimate_mode(val),
-             cred_upper = hdi_upper(val),
-             cred_lower = hdi_lower(val) )
-```
 
 ```{r}
 md.pp <- left_join(

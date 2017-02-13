@@ -8,11 +8,15 @@ rm(list = ls())
 library(langcog)
 library(tidyr)
 library(dplyr)
+library(ggthemes)
+theme_set(theme_minimal(9))
+
 ```
 
 Data analysis for Class Elicitation experiment
 
 ```{r}
+data.path <- "../data/"
 ```
 
 ```{r}
@@ -60,13 +64,33 @@ df.summary <- d %>%
 ```{r}
 df.summary %>%
   ungroup() %>%
-  mutate(sub_category = factor(sub_category, levels = sub_category[order(strength)])) %>%
+  mutate(experiment = 'Adjective endorsement \n data',
+          sub_category = factor(sub_category, 
+                  levels = c("gymnast", "soccer player", "basketball player",
+                             "bottle opener", "toaster", "dishwasher",
+                             "day in Winter", "day in Fall", "day in Summer",
+                             "video of the cute animal", "music video", "movie",
+                             "grape", "apple", "watermelon"),
+                  labels = c("gymnast", "soccer player", "basketball player",
+                             "bottle opener", "toaster", "dishwasher",
+                             "day in Winter", "day in Fall", "day in Summer",
+                             "cute animal video", "music video", "movie",
+                             "grape", "apple", "watermelon") )) %>%
   ggplot(., 
          aes( x = sub_category, y = mean, ymin = ci_lower, ymax = ci_upper, group = form, fill = form ) )+
-  geom_bar(stat = 'identity', position = position_dodge())+
-  geom_errorbar(position = position_dodge())+
-  facet_wrap(~degree, scales = 'free', nrow = 1)+
-  ylim(0, 1) + 
-  theme(axis.text.x = element_text(angle = 90) )
+  geom_bar(stat = 'identity', position = position_dodge(), alpha = 1, 
+           color = 'black', width = 0.9) +
+  geom_errorbar(position = position_dodge(0.9), width = 0.3) +
+  facet_grid(experiment~degree, scales = 'free') +
+  ylim(0, 1) +
+  scale_fill_brewer(palette = 'Set3') +
+  ylab("Superordinate paraphrase   ") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 0.95),
+        axis.title.x = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.line = element_line(colour = "black"))
+
+ggsave("~/Documents/research/comparison-class/posters/fig/expt2_data.pdf", height = 2.5)
 ```
 
