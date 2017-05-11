@@ -87,7 +87,6 @@ theme_set(theme_minimal(9))
 
 <!-- 
 Reviewer comments to address:
-
 [] why does the model make the predictions that it does?
 [] why experiment 2?
 [] why no alternative models? [no work has been done on this]
@@ -110,25 +109,29 @@ Theoretical work in semantics has focused on how information from a comparison c
 It is not well understood, however, how a comparison class becomes contextually salient.
 Any particular object of discourse can be conceptualized or categorized in multiple ways, giving rise to multiple possible comparison classes. 
 A day in January is also a day of the year; if it's warm, it could be *warm for Winter* or *warm for the year*. 
-To our knowledge, this problem central to language understanding has received no attention. 
+To our knowledge, this problem has received no theoretical or empirical attention. 
 We propose that listeners actively combine category knowledge with knowledge about what classes are likely to be talked about to infer the implicit comparison class used by the speaker.
 We introduce a minimal extension to the Rational Speech Act (RSA) model for gradable adjectives [@Lassiter2013] to allow it to flexibly reason about the likely comparison class.
 
 From this model, we derive two novel **qualitative predictions**.
-For illustration, consider temperature once again. 
-The average temperature in Winter is likely to be lower than the average for the year. 
-Saying "it's warm" (a *positive* form adjective) in Winter should signal it's warm for Winter (the more specific class), because it's unlikely to be true that it's warm for the year (the more general class). 
-The opposite should be true in Summer, where warm should be more likely to signal the general class. 
-In addition, this pattern should reverse for *negative* form adjectives (e.g., "cold"), again due to standard Bayesian reasoning of what is more likely to be true (Prediction 1). 
-In addition, the amount of information conveyed by a vague utterance depends upon the comparison class. 
-Higher variance comparison classes will result in relatively less information gain by the listener, and hence, listeners who expect speakers to be informative will prefer lower variance (e.g., more specific) comparison classes. 
-For example, regardless of the season, a listener should prefer "warm" or "cold" to be relative to the current season, a more specific reference class than "the whole year" (Prediction 2). 
+Saying "it's warm" (a *positive* form adjective) in Winter should signal it's warm *for Winter* more so than saying "it's cold" (a *negative* form adjective). 
+The opposite relationship should be hold in Summer, where *cold* in Summer should signal cold *for Summer* more so than "it's warm".
+This is driven by the a priori probability that the adjective could apply to the class e.g., the chance that it is warm in Winter (Prediction 1).
+In addition, regardless of the season and the adjective form, listeners who expect speakers to be informative will prefer classes that are relatively specific (e.g., *relative to the current season* as opposed to *relative the whole year*), as they carry more information content (Prediction 2).
 We test these predictions by eliciting the comparison class using a paraphrase dependent measure (Expt. 1).
 
-As with any Bayesian cognitive model, explicitly specifying relevant prior knowledge (e.g., beliefs about temperatures) is necessary for the model to make **quantitative predictions**.
+<!-- the specific class more so than in Winter (Prediction 1). -->
+<!-- Certain adjectives are more likely to be true of some classes than others.  -->
+<!-- For example, a day in Summer is more likely than a day in Winter to be *warm for the year*.  -->
+<!-- Thus, hearing "it's warm" (a *positive* form adjective) in Winter should signal *it's warm for Winter* (the more specific class) more so than  -->
+<!-- Additionally, the amount of information conveyed by a vague utterance depends upon the variability in the comparison class.  -->
+<!-- Comparison classes that have higher variance will result in relatively less information gain by the listener; hence, listeners who expect speakers to be informative will prefer lower variance (e.g., more specific) comparison classes.  -->
+<!-- For example, regardless of the season, a listener should prefer "warm" or "cold" to be *relative to the current season* (a relatively specific class) as it is more informative than warm *relative to the whole year* (a relatively general class; Prediction 2).  -->
+
+As with any Bayesian cognitive model, explicitly specifying relevant prior knowledge (e.g., beliefs about temperatures in seasons) is necessary for the model to make **quantitative predictions**.
 The current methodological standard is to measure beliefs by having participants estimate quantities or give likelihood judgments [@FrankeEtAl2016].
-In this paper, we pursue a different methodology.
-Our model captures a productive fragment of natural language; thus, it makes predictions about related natural language tasks.
+In this paper, we pursue a different methodology, merging Bayesian cognitive models with Bayesian data analysis.
+The RSA model captures a productive fragment of natural language; thus, it makes predictions about related natural language tasks.
 Critically, we can use the model to predict natural language judgments *based on the same prior knowledge* and use Bayesian data analysis to jointly infer the prior knowledge. 
 In Expt. 2 we collect judgments about adjective sentences like "This [winter day] is cold relative to other days of the year," in which the same domain knowledge is needed.
 By harnessing the productive nature of language into experiment design, we are able to learn jointly about interlocutors' latent knowledge and language use.
@@ -153,7 +156,7 @@ The prior distribution over world-states is always relative to some comparison c
 When a listener hears only that "it's warm outside" without an explicit comparison class (e.g., "warm for the season"), we posit the listener must infer the comparison class by thinking about continuations that would best complete the sentence.
 She does this using her world knowledge of what worlds are plausible given different comparison classes $P(x \mid c)$, what comparison classes are likely to be talked about $P(c)$, and how a rational speaker would behave in a given world and comparison class $S_{1}(u \mid x, c, \theta)$ (Eq. \ref{eq:L1a}).
 As a first test of this idea, we consider an idealized case where the comparison class can be either a relatively specific (subordinate) or relatively general (superordinate) categorization (e.g., warm relative to days in Winter or relative to days of the year). 
-Crucially in this situation, the listener is aware that the target entity is in the subordinate class (e.g., aware that it is winter) and draws likely values of the degree (e.g., temperature) from the subordinate class prior $P(x \mid c_{sub})$. With these assumptions, the model becomes:
+Crucially in this situation, the listener is aware that the target entity is in the subordinate class (e.g., aware that it is Winter) and draws likely values of the degree (e.g., temperature) from the subordinate class prior $P(x \mid c_{sub})$. With these assumptions, the model becomes:
 \vspace{-0.5cm}
 \begin{align}
 L_{1}(x, c, \theta \mid u) &\propto S_{1}(u \mid x, c, \theta) \cdot P(x \mid c_{sub}) \cdot P(c) \cdot P(\theta) \label{eq:L1a}\\
@@ -161,7 +164,6 @@ S_{1}(u \mid x, c, \theta) &\propto \exp{(\alpha_1 \cdot \ln {L_{0}(x \mid u, c,
 L_{0}(x \mid u, c, \theta) &\propto {\delta_{[\![u]\!](x, \theta)} \cdot P(x \mid c)} \label{eq:L0a}
 \end{align}
 \noindent We are interested in the behavior of the model with the underspecified utterance (e.g., "It's warm"), and we assume the speaker has two alternative utterances in which the comparison class is explicit (e.g., "It's warm relative to other days in Winter." and "It's warm relative to other days of the year.").
-
 The quantitative predictions of this model depend on the details of the listener's knowledge of the subordinate and superordinate categories: $P(x \mid c_{sub})$ and $P(x \mid c_{super})$, as well as the prior distribution on comparison classes $P(c)$ in Eq. \ref{eq:L1a}.
 
 
@@ -170,7 +172,7 @@ The quantitative predictions of this model depend on the details of the listener
 $P(c)$ reflects listeners' expectations of what classes are likely to be discussed.
 As a proxy for comparison class usage frequency, we use empirical frequency $\hat{f}$ estimated from the Google WebGram corpus^[
 Corpus accessed via 
-\url{http://corpora.linguistik.uni-erlangen.de/demos/cgi-bin/Web1T5/Web1T5_freq.perl}.
+\url{https://corpora.linguistik.uni-erlangen.de/cgi-bin/demos/Web1T5/Web1T5_freq.perl}.
 Due to the idiosyncracies of our categories and potential polysemy in some of the words (Table 1), we made the following substitutions when querying the database for emprical frequency: produce $\rightarrow$ "fruits and vegetables"; things you watch online $\rightarrow$ "online videos"; days in \{season\} $\rightarrow$ "\{season\} days"; dishwashers $\rightarrow$ "dishwashing machines"; videos of cute animals $\rightarrow$ "animal videos".
 ], and scale it by a free parameter $\beta$ such that $P(c) \propto \exp{(\beta \cdot \log \hat{f})}$.
 
@@ -215,8 +217,8 @@ var stateParams = {
 
 var stateVals = map(
   round,
-  _.range(stateParams.super.mu - 3 * stateParams.super.sigma,
-          stateParams.super.mu + 3 * stateParams.super.sigma,
+  _.range(stateParams.super.mu - 2 * stateParams.super.sigma,
+          stateParams.super.mu + 2 * stateParams.super.sigma + stateParams.super.sigma/binParam,
           stateParams.super.sigma/binParam)
 );
 
@@ -343,6 +345,130 @@ pragmaticListener(paramsFromR.utt[0])
 '
 ```
 
+```{r}
+modelDynamics <- '
+var form = paramsFromR.utt[0]
+display(form)
+_.flatten(_.flatten(
+  map(function(c){
+    map(function(t){
+      map(function(s){
+          var speakProbs = speaker1(s,{positive: t, negative: t}, c, form)
+          var Lprior = Math.exp(statePrior.sub.score(s));
+         return {  "c": c,
+            s:s, 
+            t:t, 
+            "subUtt": Math.exp(speakProbs.score(form + "_sub")),
+            "superUtt": Math.exp(speakProbs.score(form + "_super")),
+            "ambiguous": Math.exp(speakProbs.score(form + "_Adjective")),
+            "Lprior": Lprior
+          }
+      }, stateVals)
+    }, thresholdBins.positive)
+  }, ["super","sub"])
+))
+'
+```
+
+```{r modelDynamics,cache = T, eval = F}
+mp.both <- data.frame()
+
+fullModel <- paste(webpplHelpers, priorForRSA, languageForRSA, ccrsa, modelDynamics, sep = "\n")
+
+prior.params <- list(super = data.frame(mu = 0, sigma = 1), 
+                     sub = data.frame(mu = -1, sigma = 0.5))
+mp.dynamics <- data.frame()
+
+for (u in c("positive", "negative")){
+  mp.dynamics.u <- webppl(
+    program_code = fullModel,
+    data = list(utt = u, priorParams = prior.params),
+    data_var = "paramsFromR"
+  ) %>% mutate(form = u)
+  mp.dynamics <- bind_rows(mp.dynamics, mp.dynamics.u)
+}
+
+
+mp.dynamics.tidy <- mp.dynamics %>%
+  gather(utt, prob, superUtt, subUtt, ambiguous)
+
+mp.dynamics.marginal <- mp.dynamics.tidy %>%
+  group_by(c, s, utt, form) %>%
+  summarize(marginalProb = mean(prob)) %>%
+  ungroup() %>%
+  mutate(Utterance = factor(utt, levels = c("subUtt", "superUtt", "ambiguous"),
+                            labels = c("Explicit Subordinate", "Explicit Superordinate", "Implicit")),
+        c = factor(c, levels = c("super", "sub"), labels = c("Superordinate class", "Subordinate class")),
+        form = factor(form, levels = c("negative", "positive")))
+
+
+mp.dynamics.marginal <- mp.dynamics.tidy %>%
+  group_by(c, s, Lprior, utt, form) %>%
+  summarize(marginalProb = mean(prob)) %>%
+  ungroup() %>%  
+  group_by(c, utt, form) %>%
+  summarize(marginalProb = sum(marginalProb*Lprior)) %>%
+  ungroup() %>%
+  mutate(Utterance = factor(utt, levels = c("subUtt", "superUtt", "ambiguous"),
+                            labels = c("Explicit Sub", "Explicit Super", "Implicit")),
+        c = factor(c, levels = c("super", "sub"), labels = c("Superordinate", "Subordinate")),
+        form = factor(form, levels = c("negative", "positive")))
+
+
+# figDy <- ggplot(mp.dynamics.marginal %>%
+#                   filter( c == "Superordinate class"), 
+#                 aes( x = s, y = marginalProb, color = Utterance, lty = form))+
+#   geom_line(position = position_dodge(0.2))+
+#   scale_color_solarized()+
+#   facet_wrap(~c)+
+#   ylab("Speaker production probability")+
+#   xlab("Degree")+
+#   theme(legend.position = "bottom",
+#         legend.direction = "horizontal",
+#         legend.title = element_blank())
+
+
+### SAVE FOR COGSCI TALK
+ 
+figDy <- ggplot(mp.dynamics.marginal, #%>%
+                  #filter( c == "Superordinate class")
+                  #, 
+                aes( x = c, y = marginalProb, fill = Utterance, group = Utterance))+
+  #geom_line(position = position_dodge(0.3))+
+  geom_bar(position = position_dodge(), stat = 'identity')+
+  scale_fill_solarized()+
+  ylab("S1 utterance probability")+
+  xlab("Implicit comparison class")+
+  theme(legend.position = "bottom",
+        legend.direction = "horizontal",
+        legend.title = element_blank()
+        )+
+  facet_wrap(~form)
+
+
+# + 
+#   scale_x_continuous(limits = c(-2, 2), breaks = c(-2, 0, 2))+
+#   scale_y_continuous(limits = c(0, 1), breaks = c(0, 0.5, 1))+
+#   ggtitle("Assuming comparison class is Superordinate")
+# 
+#figDy
+
+# ggplot(mp.dynamics.marginal, #%>%
+#                   #filter( c == "Superordinate class")
+#                   #, 
+#                 aes( x = form, y = marginalProb, fill = Utterance, group = Utterance))+
+#   #geom_line(position = position_dodge(0.3))+
+#   geom_bar(position = position_dodge(), stat = 'identity')+
+#   scale_fill_solarized()+
+#   ylab("S1 utterance probability")+
+#   xlab("Implicit comparison class")+
+#   theme(legend.position = "bottom",
+#         legend.direction = "horizontal",
+#         legend.title = element_blank()
+#         )+
+#   facet_wrap(~c)
+```
+
 ```{r runModel, cache = T}
 sub.prior.params <- c( 
   list( sub = data.frame(mu = 1, sigma = 0.5) ),
@@ -397,7 +523,7 @@ all.priors <- bind_rows(
  
 ```
 
-```{r modelSchematics, fig.env = "figure", fig.pos = "htb", fig.width = 3.3, fig.height = 2.5, num.cols.cap = 1, fig.cap = "Left: Three hypothetical prior distributions over subordinate comparison class (fixing the superordinate comparison class to be a unit-normal distribution, in grey). Right: Predicted listener inference for the probability of an intended superordinate comparison class. The comparison class prior does not favor either the subordinate or superordinate class."}
+```{r modelSchematics, fig.env = "figure", fig.pos = "htb", fig.width = 3.4, fig.height = 2.5, num.cols.cap = 1, fig.cap = "Left: Three hypothetical prior distributions over subordinate comparison class (fixing the superordinate comparison class to be a unit-normal distribution, in grey). Right: Predicted listener inference for the probability of an intended superordinate comparison class. The comparison class prior does not favor either the subordinate or superordinate class."}
 
 subplt1 <- ggplot(all.priors, aes(x = val,fill = cat, 
                               lty = cat, group= cat, alpha=cat))+
@@ -439,7 +565,9 @@ subplt2 <- ggplot(mp.both %>%
   
 
 
+#grid.arrange(arrangeGrob(subplt1, subplt2, nrow = 1), figDy, nrow = 2)
 grid.arrange(subplt1, subplt2, nrow = 1)
+
 ```
 
 ```{r data_collection_plan_simulation, eval = F, echo=F}
@@ -526,8 +654,6 @@ vs.bayes <- left_join(d, d.catch %>% select(workerid, pass)) %>%
 
 ```
 
-
-
 ### Qualitative model predictions
 
 ```{r stim_table, results="asis"}
@@ -563,16 +689,17 @@ print(xtable(table.1,
       comment = F)
 ```
 
-
 For purposes of illustration, assume that each class is equally likely *a priori*: $P(c) = 0.5$.
 Figure \ref{fig:modelSchematics} (left) illustrates superordinate and possible subordinate priors; e.g., temperatures over the whole year, in Winter (low), Fall (medium), and Summer (high), in a part of the world that exhibits seasons (e.g., Maryland, USA).
-As described in the introduction, Figure \ref{fig:modelSchematics} (right) shows that during Winter, the pragmatic listener upon hearing "it's warm" (positive adjective) thinks it's more likely that it's warm relative to days in Winter than when she hears "it's cold" (Figure \ref{fig:modelSchematics}, right, left-most bars).
+The subordinate distributions differ from the superordinate by either their mean and/or variance (e.g., temperatures in Winter are expected to be overall lower and lower variance than temperatures over the whole year).
+
+Consistent with the intuitive pragmatic logic in the introduction, Figure \ref{fig:modelSchematics} (right) shows that during Winter, the pragmatic listener upon hearing "it's warm" (positive adjective) thinks it's more likely that it's warm relative to days in Winter than when she hears "it's cold" (Figure \ref{fig:modelSchematics}, right, left-most bars).
 The reverse is true in Summer (Prediction 1).
 Figure \ref{fig:modelSchematics} (right) shows that all superordinate class interpretations are below baseline regardless of the adjective polarity (e.g., warm vs. cold) or the mean of the subordinate prior (low, medium, high). 
-The pragmatic listener (Eq. \ref{eq:L1a}) prefers the more specific comparison class (Prediction 2).
+The pragmatic listener (Eq. \ref{eq:L1a}) prefers the more specific comparison class because it is more informative (Prediction 2).
 <!--This comes from the vagueness of adjectives: The meaning of the adjective in context depends upon the prior; a prior with less variance will result in a relatively more precise meaning.-->
 <!--A warm day in Summer could be warm for Summer, or warm for the year, while a cold day in Summer is much more likely to be cold for Summer.-->
-In sum, we see two predictions: The pragmatic listener overall prefers subordinate comparison classes, though the extent of this preference is modulated by the *a priori* probability that the adjective is true of the superordinate category (which depends on its polarity).
+In sum, we see two predictions: The pragmatic listener overall prefers subordinate comparison classes, though the extent of this preference is modulated by the *a priori* probability that the adjective is true of the superordinate category (which, in turn, depends on the adjective polarity).
 We will test these two predictions in our first experiment.
 
 ### Overview of data analytic approach
@@ -581,9 +708,9 @@ As described above, the relevant prior knowledge yields two free parameters per 
 We put priors over these parameters and infer their likely values using Bayesian data analysis and our experimental data.
 The data from the comparison class experiment (Expt. 1) would be insufficient, however, to reliably estimate all the parameters of this data analytic model. 
 To alleviate this, we run an additional experiment designed to use the same RSA model reasoning about the same domain knowledge.
-In Expt. 2, we gather judgments about adjective usage in contexts where the comparison class is explicit: whether or not an adjective would be true relative to the superordinate category of a subordinate member (e.g., it is a winter day, is it warm relative to other days of the year?).
+In Expt. 2, we gather judgments about adjective usage in contexts where the comparison class is explicit: specifically, whether or not an adjective would be true of a subordinate member explicitly relative to the superordinate category  (e.g., it is a winter day, is it warm relative to other days of the year?).
 
-To model this this data, we remove comparison class uncertainty by setting $P(c_{super}) = 1$, since the sentences provide explicit comparison classes.
+To model this data, we remove comparison class uncertainty by setting $P(c_{super}) = 1$, since the sentences provide explicit comparison classes.
 We then model sentence endorsement using a pragmatic speaker [following @Qing2014a; @Tessler2016; @Tessler2016cogsci]:
 \vspace{-0.5cm}
 \begin{align}
@@ -800,7 +927,7 @@ grid.arrange(fig2a, fig2b,fig2c, nrow = 3, heights = c(2,1,2))
 # Behavioral experiments
 
 Experiment 1 tests the qualitative predictions of the model.
-Experiment 2 collects further data about adjective usage in order to constrain the quantitative predictions for the RSA model, which will be used to predict data from both experiments.
+Experiment 2 collects further data about adjective usage in order to constrain the quantitative predictions of the RSA model, which will be used to predict data from both experiments.
 The materials and much of the design of the two experiments are shared.
 Participants were recruited from Amazon's Mechanical Turk and were restricted to those with U.S. IP addresses with at least a 95% work approval rating.
 Each experiment took about 5 minutes and participants were compensated $0.50 for their work.
@@ -809,7 +936,7 @@ Each experiment took about 5 minutes and participants were compensated $0.50 for
 
 We used positive- and negative-form gradable adjectives describing five scales (Table \ref{tab:1}).
 Each scale was paired with a superordinate category, and for each superordinate category, we used three subordinate categories that aimed to be situated near the high-end, low-end, and intermediate part of the degree scale (as in Figure \ref{fig:modelSchematics} left).
-This resulted in 30 unique events (\{3 subordinate categories\} x \{5 scales\} x \{2 adjective forms\}).
+This resulted in 30 unique items (\{3 subordinate categories\} x \{5 scales\} x \{2 adjective forms\}).
 Each participant saw 15 trials: one for each subordinate category paired with either the positive or negative form of its corresponding adjective.
 Participants never judged the same subordinate category for both adjective forms (e.g., cold and warm Winter days) and back-to-back trials involved different scales to avoid fatigue.
 
