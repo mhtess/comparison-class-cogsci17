@@ -694,19 +694,19 @@ print(xtable(table.1,
       comment = F)
 ```
 
-For purposes of illustration, assume that each class is equally likely *a priori*: $P(c = c_{sub}) = 0.5$.
-Figure \ref{fig:modelSchematics} (left) illustrates superordinate and possible subordinate priors; e.g., temperatures over the whole year, in winter (low), fall (medium), and summer (high), in a part of the world that exhibits seasons (e.g., Maryland, USA).
-The subordinate distributions differ from the superordinate by either their mean and/or variance (e.g., temperatures in winter are expected to be overall lower and have lower variance than temperatures over the whole year).
+<!-- For purposes of illustration, assume that each class is equally likely *a priori*: $P(c_{sub}) = 0.5$. -->
+Figure \ref{fig:modelSchematics} (left) shows schematic superordinate and subordinate priors; e.g., temperatures over the whole year, in winter (low), fall (medium), and summer (high).
+The subordinate distributions have lower variance than the superordinate, and the "low" and "high" distributions have different means (e.g., temperatures in winter are expected to be lower and have lower variance than temperatures over the whole year).
 
 Two intuitions explain the inferences of the pragmatic listener model. 
 First, certain classes are more or less likely to have an adjective felicitously apply.
-For example, any given day in winter is *less* likely to be warm (for the year) than "cold" (for the year).
+For example, any given day in winter is *less* likely to be warm (for the year) than cold (for the year).
 Thus, hearing "it's warm" in winter will signal it's warm *for winter* (the subordinate class) more so than hearing "it's cold".
 The opposite is true in summer (Prediction 1; Figure \ref{fig:modelSchematics} right, left-most vs. right-most bars).
 
 Second, the amount of information conveyed by a vague utterance depends upon the variability in the comparison class.
 Comparison classes that have higher variance will result in relatively less information gain by the listener (intuitively, they're "more vague"); 
-hence, listeners who expect speakers to be informative will prefer lower variance (e.g., subordinate) comparison classes (Prediction 2).
+all else being equal, listeners who expect speakers to be informative will prefer lower variance (e.g., subordinate) comparison classes (Prediction 2).
 Figure \ref{fig:modelSchematics} (right) shows that subordinate class interpretations are above baseline regardless of the adjective polarity (e.g., warm vs. cold) or the mean of the subordinate prior (low, medium, high) because the subordinate classes have lower variance.
 
 In sum, we see two predictions: The pragmatic listener overall prefers subordinate comparison classes, though the extent of this preference is modulated by the *a priori* probability that the adjective is true of the subordinate category.
@@ -721,11 +721,11 @@ We test these two predictions in our first experiment.
 
 ### Overview of data analytic approach
 
-As described above, the relevant prior knowledge yields two free parameters per subordinate domain.
-We put priors over these parameters and infer their likely values using Bayesian data analysis and our experimental data.
+As described above, specifying the relevant prior knowledge yields two free parameters per subordinate class.
+We put priors over these parameters and infer their likely values using Bayesian data analysis.
 The data from the comparison class experiment (Expt. 1) would be insufficient, however, to reliably estimate all the parameters of this data analytic model. 
-To alleviate this, we run an additional experiment designed to use the same RSA model reasoning about the same domain knowledge.
-In Expt. 2, we gather judgments about adjectives when the comparison class is explicit: specifically, whether or not an adjective would apply to a subordinate member explicitly relative to the superordinate category (e.g., Is a day in winter warm relative to other days of the year?).
+To alleviate this, we run an additional experiment designed to use the same RSA model using similar language about the same domains (Expt. 2).
+We gather judgments about adjectives when the comparison class is explicit: specifically, whether or not an adjective would apply to a subordinate member explicitly relative to the superordinate category (e.g., Is a day in winter warm relative to other days of the year?).
 
 To model Expt. 2 data, we remove comparison class uncertainty by setting $P(c_{super}) = 1$, since the sentences provide explicit comparison classes.
 We then model sentence endorsement using a pragmatic speaker [following @Qing2014a; @Tessler2016; @Tessler2016cogsci]:
